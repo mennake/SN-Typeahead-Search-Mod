@@ -1,0 +1,4 @@
+# SN-Typeahead-Search-Mod
+I modified the OOB ServiceNow Typeahead Search widget to pass the catalog_id as a parameter in the query string
+
+Because we are using a list view rather than individual landing pages (like the Stanford SN site), this required me creating a copy of the OOB "typeahead search" widget (which is read-only), and adding new js code to the client script where the catalog_id of the page I am on (which is in the URL query) gets passed when I search, thus filtering my search based on the catalog I am on. I had to exclude the query being passed to All Catalogs, as it has a catalog_id of "-1" and passing that basically breaks my code and returns no results.  Because we are working with one page, "sc_category" (Service Catalog) and the content gets changed dynamically based on catalog, additional effort was required to make the search pass the catalog_id parameter and return the desired result. 
