@@ -1,5 +1,6 @@
 function ($http, $filter, $location,spAriaUtil, $window, $scope, spAriaFocusManager, snAnalytics, spAISearchResults) {
 	var c = this;
+	var searchCatalogId = null;
 
 	// Code common for Zing and AI Search start
 	$scope.$on('$locationChangeSuccess', onLocationChangeSuccess);
@@ -29,6 +30,18 @@ function ($http, $filter, $location,spAriaUtil, $window, $scope, spAriaFocusMana
 		setSearchTerm(newUrl, oldUrl);
 	}
 	// Code common for Zing and AI Search end
+	
+	// Extract catalog_id from the URL
+	function extractCatalogIdFromUrl() {
+		var pageUrlParams = new URL($location.absUrl());
+		return pageUrlParams.searchParams.get("catalog_id");
+	}
+
+	// Initialize searchCatalogId
+	function initializeSearchCatalogId() {
+		var catalogIdFromPage = extractCatalogIdFromUrl();
+		searchCatalogId = catalogIdFromPage ? catalogIdFromPage : c.data.catalog_id;
+	}
 
 	if (c.data.aisEnabled)
 		intializeAISearch();
@@ -80,19 +93,10 @@ function ($http, $filter, $location,spAriaUtil, $window, $scope, spAriaFocusMana
 	c.isGlideSignalsLoaded = false;
 	c.isLocationTrackerDisabled = c.data.isLocationTrackerDisabled === "true";
 	c.isTypeAheadEnabled = c.data.isTypeAheadEnabled === "true";
-	
-	// MK NEW CODE Extracting catalog_id from the page URL
-    var pageUrlParams = new URL($location.absUrl());
-    var catalogIdFromPage = pageUrlParams.searchParams.get("catalog_id");
-
-    // Use the extracted catalog_id in the search results URL
-    c.searchTerm = c.data.q;
-    c.searchQuery = "";
-    c.pageID = $scope.page && $scope.page.id;
-    // Use catalogIdFromPage in the search results URL
-    var searchCatalogId = catalogIdFromPage ? catalogIdFromPage : c.data.catalog_id;
-	// END NEW CODE
 		
+	// Call to initialize searchCatalogId
+	initializeSearchCatalogId();
+	
 	c.sendAnalytics = function(type){
 		var payload= {};
 		payload.name = "Initiate Search";
@@ -421,17 +425,17 @@ function ($http, $filter, $location,spAriaUtil, $window, $scope, spAriaFocusMana
 		var shouldReloadPage = c.data.refreshPageOnSearch && $location.search().id === 'search';
 
 		if (c.searchTerm) {
-			var newUrlObj = $location.search({
+			var newUrl = $location.search({
 				id: 'search',
 				spa: '1',
 				// Using extracted catalog_id in the search URL
 				// Only include catalog_id if it's not -1
 				catalog: searchCatalogId !== "-1" ? 'str:' + searchCatalogId : "",
+				catalog_id: searchCatalogId,
 				t: c.searchType,
 				q: c.searchTerm
 			});
-			
-			
+
 			if (shouldReloadPage)
 				$scope.$emit("sp.page.reload");
 
